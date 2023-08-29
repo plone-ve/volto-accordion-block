@@ -22,6 +22,12 @@ const View = (props) => {
   const history = useHistory();
   const panels = getPanels(data.data);
   const metadata = props.metadata || props.properties;
+  const diffView =
+    location?.pathname.slice(
+      location?.pathname.lastIndexOf('/'),
+      location?.pathname.length,
+    ) === '/diff';
+
   const [activeIndex, setActiveIndex] = React.useState([]);
   const [activePanel, setActivePanel] = React.useState([]);
   const [filterValue, setFilterValue] = React.useState('');
@@ -152,18 +158,21 @@ const View = (props) => {
                 <Accordion.Title
                   as={data.title_size}
                   active={active}
-                  index={index}
-                  tabIndex={0}
-                  onClick={(e) => handleClick(e, { index, id })}
-                  onKeyDown={(e) => {
-                    if (e.keyCode === 13) {
-                      handleClick(e, { index, id });
-                    }
-                  }}
+                  aria-expanded={active}
                   className={cx('accordion-title', {
                     'align-arrow-left': !iconOnRight,
                     'align-arrow-right': iconOnRight,
                   })}
+                  index={index}
+                  onClick={(e) => handleClick(e, { index, id })}
+                  onKeyDown={(e) => {
+                    if (e.keyCode === 13 || e.keyCode === 32) {
+                      e.preventDefault();
+                      handleClick(e, { index, id });
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
                 >
                   <Icon
                     options={titleIcons}
@@ -178,7 +187,7 @@ const View = (props) => {
                 <AnimateHeight
                   animateOpacity
                   duration={500}
-                  height={active ? 'auto' : 0}
+                  height={active || diffView ? 'auto' : 0}
                   onTransitionEnd={() => {
                     if (!!activePanels && id === itemToScroll) {
                       scrollToElement();
@@ -186,7 +195,7 @@ const View = (props) => {
                     }
                   }}
                 >
-                  <Accordion.Content active={active}>
+                  <Accordion.Content active={diffView ? true : active}>
                     <RenderBlocks
                       {...props}
                       location={location}
